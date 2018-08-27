@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Phil Hurvitz" />
+
+<meta name="date" content="2018-08-17" />
+
+<title>FRATIS Routing</title>
+
+<script src="routing_documentation_files/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="routing_documentation_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="routing_documentation_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="routing_documentation_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="routing_documentation_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="routing_documentation_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="routing_documentation_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="routing_documentation_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="routing_documentation_files/navigation-1.1/tabsets.js"></script>
+<script src="routing_documentation_files/navigation-1.1/codefolding.js"></script>
+<link href="routing_documentation_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="routing_documentation_files/highlightjs-9.12.0/highlight.js"></script>
+<script src="routing_documentation_files/htmlwidgets-1.2/htmlwidgets.js"></script>
+<link href="routing_documentation_files/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+<script src="routing_documentation_files/leaflet-1.3.1/leaflet.js"></script>
+<link href="routing_documentation_files/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="routing_documentation_files/Proj4Leaflet-1.0.1/proj4-compressed.js"></script>
+<script src="routing_documentation_files/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="routing_documentation_files/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+<script src="routing_documentation_files/leaflet-binding-2.0.1/leaflet.js"></script>
+<script src="routing_documentation_files/kePrint-0.0.1/kePrint.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="/styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">FRATIS Routing</h1>
+<h4 class="author"><em><a href="mailto:phurvitz@uw.edu">Phil Hurvitz</a></em></h4>
+<h4 class="date"><em>2018-08-17</em></h4>
+
+</div>
+
+
+<style type="text/css">
+.main-container {
+  max-width: 2400px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<style>
+.outline {
+   background-color: #000000;
+   padding:1px;
+   display: inline-block;
+}
+</style>
+<div id="introduction" class="section level1">
+<h1><span class="header-section-number">1</span> Introduction</h1>
+<p>This report documents the UW/TRAC method for truck routing for the FRATIS project. The application runs on a combination of PostgreSQL with PostGIS (the spatial data management and analysis package for PostgreSQL), which is responsible for the main analytic processes, and RStudio, which provides the run-time interface and rendering engine.</p>
+<div id="logic" class="section level2">
+<h2><span class="header-section-number">1.1</span> Logic</h2>
+<p>The routing is performed using the <code>pgr_dijkstra</code> family of models in PostGIS. The logic follows these steps:</p>
+<ol style="list-style-type: decimal">
+<li>Origin and destination lat/long values are provided by the user</li>
+<li>Within a proximity (default of 10 km) of these O/D points, a number of network vertices are selected (default of 10). This is necessary, rather than simply selecting the closest vertex, which could be on the wrong side of the roadway.</li>
+<li>For each pair of O/D vertices, a least-cost route is generated (where cost is the average time for a truck to traverse a road segment).</li>
+<li>The route with the shortest duration is selected as the “base” route.</li>
+<li>The start and end vertices for the base route are then used to generate routes passing by way of “via” alternate vertices using the <code>pgr_dijkstravia</code> function. The two fastest alternatives are selected as the “altbase” alternatives.</li>
+<li>Optionally, delays can be introduced into the estimates of trip times. The travel bounding interval for each segment in the entire route is compared with the bounding interval of road work delays. If there is any time overlap affecting any segments in any of the routes, length-weighted apportioning of the delay is applied to the affected segments (i.e., by recomputing time to traverse the affected segments).</li>
+<li>With “base” and “altbase” routes defined, a time-stepping algorithm is applied to estimate traversal time for each segment.
+<ol style="list-style-type: decimal">
+<li>Time of departure or arrival is specified.</li>
+<li>Stepping forward (or backward), segment by segment, the day of week (DOW) and hour of traversing the segment is used to pull related data from an empirical DOW/hour segment speed table, and the matching speed is applied to the segment.</li>
+<li>If delays are used, the additional time to traverse the segment is added.</li>
+<li>The steps are repeated for each segment, giving an estimate of the time stamp at the beginning and end of each segment.</li>
+</ol></li>
+<li>Distances and travel times are summed across contiguously named road segments in the route (i.e., driving directions), and segments are aggregated by contiguous roadway name.</li>
+</ol>
+<p>The name-aggregated routes are displayed in a web page with <a href="https://rstudio.github.io/leaflet/">Leaflet</a> maps.</p>
+</div>
+</div>
+<div id="setup" class="section level1">
+<h1><span class="header-section-number">2</span> Setup</h1>
+<div id="inputs" class="section level2">
+<h2><span class="header-section-number">2.1</span> Inputs</h2>
+<ol style="list-style-type: decimal">
+<li>topologically connected network with NPMRDS IDs on segments requires pgCreateTopology fields as well as speed_delay float</li>
+<li>“via” locations for generating alternative routes</li>
+<li>NPMRDS time table data for assigning mean speeds per segment and for estimating travel time from time-stepping algorithm</li>
+<li>work zones table (CSV format)
+<ol style="list-style-type: decimal">
+<li>single work zone ID related to one or more NPMRDS IDs</li>
+</ol></li>
+<li>work zone delay table (CSV format)
+<ol style="list-style-type: decimal">
+<li>work zone ID with start and end time stamps and time delay for the entire zone</li>
+</ol></li>
+<li>“Via” points for generating alternate routes. These were generated <em>ad hoc</em> to establish some routes that may not have been on the main I-35 corridor, as shown in Figure 1.</li>
+</ol>
+<pre class="r"><code># get PostGIS data
+
+# get data
+myroute &lt;- get_postgis_query(fratis, &quot;select * from npmrds.roads_topo_vertices_pgr where id in (select id from npmrds.via_vertex)&quot;, geom_name=&quot;the_geom&quot;)
+# sf type
+myroutesf &lt;- st_as_sf(myroute)
+# to wgs84
+myroutewgs84 &lt;- st_transform(myroutesf, crs=4326)
+# data frame for classes etc.
+mydf &lt;- myroutewgs84 %&gt;% st_set_geometry(NULL)
+
+# a leaflet
+cap_via &lt;- figure_nums(name = &quot;cap_via&quot;, caption = &quot;&#39;Via&#39; points for selecting alternate routes&quot;)
+m &lt;- leaflet(myroutewgs84) %&gt;% addMarkers() %&gt;% addTiles()
+m</code></pre>
+<p><div id="htmlwidget-683eb3d53dbdd23fedca" style="width:672px;height:480px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-683eb3d53dbdd23fedca">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addMarkers","args":[[30.1957401999997,32.0746099999976,32.7638929999985,32.6360899999896,32.6459051999958,29.5828779999997,31.0556669999992,29.3603659999998,30.2779381999996,29.9955475999996],[-98.3756515999999,-97.0597819999993,-97.3208079999997,-96.4714289999974,-96.8569851999989,-97.9956185999999,-97.5257789999998,-98.4050235999999,-98.4043094,-97.7471919999999],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addTiles","args":["//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]}],"limits":{"lat":[29.3603659999998,32.7638929999985],"lng":[-98.4050235999999,-96.4714289999974]}},"evals":[],"jsHooks":[]}</script> Figure 1: ‘Via’ points for selecting alternate routes</p>
+</div>
+<div id="software" class="section level2">
+<h2><span class="header-section-number">2.2</span> Software</h2>
+<ol style="list-style-type: decimal">
+<li><a href="https://www.postgresql.org/">PostgreSQL</a> with <a href="http://postgis.org/">PostGIS</a> (including pgRouting)</li>
+<li>R suite
+<ol style="list-style-type: decimal">
+<li><a href="https://www.r-project.org/">R</a></li>
+<li><a href="https://www.rstudio.com/">RStudio</a></li>
+<li><a href="https://www.rstudio.com/products/shiny/">Shiny</a></li>
+</ol></li>
+<li><a href="https://qgis.org/en/site/">QGIS</a> (for cleaning road data)</li>
+</ol>
+<p>The application and data were developed on Linux (<a href="https://centos.org/">CentOS 7</a>).</p>
+</div>
+</div>
+<div id="data-preparation-steps" class="section level1">
+<h1><span class="header-section-number">3</span> Data preparation steps</h1>
+<ol style="list-style-type: decimal">
+<li>Clean road data (not necessary if high quality, topologically correct data are used)</li>
+<li>Generate pgRouting topology (establishes network connectivity relationships, identifying segments and vertices)
+<ol style="list-style-type: decimal">
+<li>Starts with an “edge” (network) PostGIS table, generates a vertices (point) PostGIS table</li>
+</ol></li>
+<li>Assign time of travel for each segment
+<ol style="list-style-type: decimal">
+<li>Obtain average speeds per TMC segment from NPMRDS</li>
+<li>Calculate travel time as impedance: <span class="math inline">\(t = d / r\)</span></li>
+<li>Assign reverse impedance (either a very high number or a negative number), to prevent from routing the wrong way on 1-way roadways</li>
+</ol></li>
+<li>Create “work zone” CSV file enumerating zones and the TMCs within each zone (Table 1)</li>
+<li>Create “work delays” CSV file enumerating zones, start and end time of work (Table 2)</li>
+</ol>
+<pre class="r"><code>cz &lt;- read.csv(&quot;/projects/fratis/npmrds/construction_zones.csv&quot;)
+tcap0 &lt;- table_nums(name = &quot;tcap0&quot;, caption = &quot;Work zones file&quot;)
+kable(cz, format = &quot;html&quot;, caption = tcap0) %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;), full_width = F, position = &quot;left&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; ">
+<caption>
+Table 1: Work zones file
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+zone_num
+</th>
+<th style="text-align:left;">
+tmc
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+111+06067
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+111P06066
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+111-06039
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+111-06040
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+111N06039
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+111N06040
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+111N06041
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+111-06065
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+111-06066
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+111N06066
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+111-04616
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+111N04617
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+111N04616
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>cd &lt;- read.csv(&quot;/projects/fratis/npmrds/construction_delays.csv&quot;)
+tcap1 &lt;- table_nums(name = &quot;tcap1&quot;, caption = &quot;Work delays file&quot;)
+kable(cd, format = &quot;html&quot;, caption = tcap1) %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;), full_width = F, position = &quot;left&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; ">
+<caption>
+Table 2: Work delays file
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+zone_num
+</th>
+<th style="text-align:left;">
+time_start
+</th>
+<th style="text-align:left;">
+time_end
+</th>
+<th style="text-align:right;">
+delay_minutes
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+2017-04-19 10:00
+</td>
+<td style="text-align:left;">
+2017-04-20 06:00
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+2017-04-19 10:00
+</td>
+<td style="text-align:left;">
+2017-04-20 06:00
+</td>
+<td style="text-align:right;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+2017-04-19 10:00
+</td>
+<td style="text-align:left;">
+2017-04-20 06:00
+</td>
+<td style="text-align:right;">
+30
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+2017-04-19 10:00
+</td>
+<td style="text-align:left;">
+2017-04-20 06:00
+</td>
+<td style="text-align:right;">
+50
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="running" class="section level1">
+<h1><span class="header-section-number">4</span> Running</h1>
+<p>Running the application is done in RStudio with Shiny. The Shiny application has data entry widgets for the various parameters (Figure 2).</p>
+<div class="outline">
+<div class="figure">
+<img src="images/shiny.png" />
+
+</div>
+</div>
+<p><br />
+Figure 2: Run-time parameter inputs in Shiny</p>
+<p>As the system is running, messages are displayed in the RStudio console (Figure 3).</p>
+<div class="outline">
+<div class="figure">
+<img src="images/shiny_runtime.png" />
+
+</div>
+</div>
+<p><br />
+Figure 3: RStudio interface showing console messages</p>
+<p>When the run is complete, the Shiny window will show “DONE” at the bottom and present a hyperlink to the page displaying route information in tabular and mapped formats (Figure 4).</p>
+<div class="outline">
+<div class="figure">
+<img src="images/shiny_complete.png" />
+
+</div>
+</div>
+<p><br />
+Figure 4: Shiny interface showing run completed</p>
+<p>Run time parameters file example:</p>
+<pre class="r"><code>params &lt;- read.csv(&quot;params.csv&quot;)
+tcap2 &lt;- table_nums(name = &quot;tcap2&quot;, caption = &quot;Run time parameters&quot;)
+kable(params, format = &quot;html&quot;, caption = tcap2) %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;), full_width = F, position = &quot;left&quot;)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; ">
+<caption>
+Table 3: Run time parameters
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+setting
+</th>
+<th style="text-align:left;">
+values
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+delay CSV
+</td>
+<td style="text-align:left;">
+/projects/fratis/npmrds/construction_delays.csv
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zones CSV
+</td>
+<td style="text-align:left;">
+/projects/fratis/npmrds/construction_zones.csv
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+edge tablename
+</td>
+<td style="text-align:left;">
+npmrds.roads_topo
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+edge geometry field
+</td>
+<td style="text-align:left;">
+the_geom_32614
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EPSG spatial reference ID
+</td>
+<td style="text-align:left;">
+32614
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+speed field
+</td>
+<td style="text-align:left;">
+speed_truck
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cost field
+</td>
+<td style="text-align:left;">
+cost_truck
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+reverse cost field
+</td>
+<td style="text-align:left;">
+reverse_cost_truck
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vertex tablename
+</td>
+<td style="text-align:left;">
+npmrds.roads_topo_vertices_pgr
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vertex geometry field
+</td>
+<td style="text-align:left;">
+the_geom
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+search tolerance for vertices around O/D
+</td>
+<td style="text-align:left;">
+10000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+number of vertices to search around O/D
+</td>
+<td style="text-align:left;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+depart or arrive time
+</td>
+<td style="text-align:left;">
+2017-04-19 12:00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+origin latitude
+</td>
+<td style="text-align:left;">
+32.828747
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+origin longitude
+</td>
+<td style="text-align:left;">
+-97.201056
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+destination latitude
+</td>
+<td style="text-align:left;">
+29.447291
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+destination longitude
+</td>
+<td style="text-align:left;">
+-98.447602
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+forward
+</td>
+<td style="text-align:left;">
+true
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="results" class="section level1">
+<h1><span class="header-section-number">5</span> Results</h1>
+<p>A sample of results is shown in Figure 5 and Figure 6.</p>
+<div class="outline">
+<div class="figure">
+<img src="images/webpage0.png" />
+
+</div>
+</div>
+<p><br />
+Figure 5: Example of completed run</p>
+<div class="outline">
+<div class="figure">
+<img src="images/webpage1.png" />
+
+</div>
+</div>
+<p><br />
+Figure 6: Example of completed run</p>
+<p>A results using arrival time is shown in Figure 7.</p>
+<div class="outline">
+<div class="figure">
+<img src="images/webpage2.png" />
+
+</div>
+</div>
+<p><br />
+Figure 7: Example of completed run using arrival time as a parameter</p>
+<p>An example of output using specified start time: <a href="OD_Routing/results_start_time.pdf">results_start_time.pdf</a>, and one with specified arrival time: <a href="OD_Routing/results_arrival_time.pdf">results_arrival_time.pdf</a>.</p>
+</div>
+<div id="appendix" class="section level1">
+<h1><span class="header-section-number">6</span> Appendix</h1>
+<p>This appendix contains sections with greater detail on various processes needed to prepare data for routing, including code chunks with the R and SQL code for various functions.</p>
+<div id="database-structure" class="section level2">
+<h2><span class="header-section-number">6.1</span> Database structure</h2>
+<p>The PostgreSQL database was set up with several schemas:</p>
+<ol style="list-style-type: decimal">
+<li><em>postgis</em>, where the PostGIS extension was installed <code>create schema postgis; create extension postgis with schema postgis</code></li>
+<li><em>npmrds</em>, where geometry and speed tables are located</li>
+</ol>
+</div>
+<div id="speed-data" class="section level2">
+<h2><span class="header-section-number">6.2</span> Speed data</h2>
+<p>Speed data were obtained from NPMRDS for April, 2017, with one-hour measurement interval.</p>
+<p>In the following code chunks (one for all vehicles and one for trucks only):</p>
+<ol style="list-style-type: decimal">
+<li>speed data were written to the database</li>
+<li>average speed per TMC was calculated</li>
+<li>average speed per TMC per day of week (1-7) and hour (0-23) Not all TMCs had measurements at every DOW/hour combination; in those cases, speeds were assigned using the average speed for the TMC across the entire measurement period.</li>
+</ol>
+<pre class="r"><code># does the speed data exist
+if(!dbGetQuery(conn = fratis, statement = &quot;select count(*) = 1 as texists from information_schema.tables where table_schema = &#39;npmrds&#39; and table_name = &#39;speed_raw&#39;;&quot;)$texists){
+# write raw speed to the db
+sql &lt;- &quot;create table npmrds.speed_raw (
+    tmc text
+    , measurement_tstamp timestamptz
+    ,speed float
+    ,average_speed float
+    ,reference_speed float
+    ,travel_time_seconds float
+    ,data_density text);&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+
+cmd &lt;- &quot;psql fratis -c \&quot;\\copy npmrds.speed_raw from &#39;/projects/fratis/npmrds/export_040318_v1/Readings.csv&#39;\ with csv header\&quot;&quot;
+system(cmd)
+
+
+sql_npmrds.speed_raw_corrected &lt;- &quot;
+--fill in means on time data
+
+drop table if exists npmrds.speed_raw_corrected;
+create table npmrds.speed_raw_corrected as
+with
+--raw
+tr as (select * from npmrds.speed_raw)
+--min and max time stamps
+, tt as (select min(measurement_tstamp), max(measurement_tstamp) from tr)
+--generate a series from each time stamp
+, t as (select generate_series(min, max, interval &#39;1 hour&#39;) as measurement_tstamp from tt)
+, td as (select measurement_tstamp, extract(isodow from measurement_tstamp) as iso_dow, extract(hour from measurement_tstamp) as hr from t)
+--unique tmcs
+, tmcs as (select distinct tmc from tr)
+--combine TMCs and time stamps
+, tts as (select * from td, tmcs order by tmc, measurement_tstamp)
+--average over TMCs
+, tmcavg as (select tmc, avg(speed) as speed_avg from tr group by tmc order by tmc)
+--join and case
+, f as (select distinct tmc, measurement_tstamp, coalesce(speed, speed_avg) as speed, iso_dow, hr from tr full join tts using(tmc, measurement_tstamp, iso_dow, hr) left join tmcavg using(tmc) order by tmc, measurement_tstamp)
+select * from f;
+create index idx_speed_raw_corrected_mc on npmrds.speed_truck_raw_corrected using btree(tmc, iso_dow, hr);&quot;
+
+O &lt;- dbGetQuery(conn = fratis, statement = sql_npmrds.speed_raw_corrected)
+
+# day of week and hour
+# isodow = The day of the week as Monday(1) to Sunday(7)
+# https://www.postgresql.org/docs/current/static/functions-datetime.html
+
+sql &lt;- &quot;alter table npmrds.speed_raw add column iso_dow integer;
+alter table npmrds.speed_raw add column hr integer;
+update npmrds.speed_raw set iso_dow = extract(isodow from measurement_tstamp);
+update npmrds.speed_raw set hr = extract(hour from measurement_tstamp);&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+
+# summaries
+sql &lt;- &quot;
+--drop and create table
+--drop and create table
+drop table if exists npmrds.speed_dow_hr;
+create table npmrds.speed_dow_hr as
+--cte
+with 
+--start on a Monday
+d as (select &#39;1970-01-05 00:00:00&#39;::timestamptz as d)
+--generate 2 weeks of DOWs
+, day1 as (select generate_series(d.d, d.d + 13 * interval &#39;1 day&#39;, interval &#39;1 day&#39;) as xdate from d)
+, day2 as (select row_number() over() as iso_dow, * from day1)
+--get mean-filled speeds
+, x as (select * from npmrds.speed_raw_corrected
+)
+--aggregate over DOW/hour combination
+, y as (select tmc, iso_dow, hr, avg(speed) as speed from x group by tmc, iso_dow, hr order by tmc, iso_dow, hr)
+--another copy incremented by a week for wraparounds
+, z as (select tmc, iso_dow + 7 as iso_dow, hr, speed from y)
+, f as (select * from y union all select * from z)
+, f1 as (select f.*, xdate + hr * interval &#39;1 hour&#39; as measurement_tstamp from f join day2 using(iso_dow))
+select * from f1 order by tmc, measurement_tstamp;
+create index idx_speed_dow_hr on npmrds.speed_dow_hr using btree(tmc, iso_dow, hr);
+
+--aggregate by segment to get overall estimated speed
+--drop and create table
+drop table if exists npmrds.speed_segment;
+create table npmrds.speed_segment as
+--cte
+with 
+x as (select *, 
+    --if measured speed is null use average speed
+    case when speed is null then average_speed
+    else speed
+    end as spd
+from npmrds.speed_raw
+)
+--aggregate
+select tmc,  avg(spd) as speed from x group by tmc order by tmc;&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+}</code></pre>
+<pre class="r"><code># because these processes take a relatively long time, eval only once.
+
+# does the speed_truck data exist
+if(!dbGetQuery(conn = fratis, statement = &quot;select count(*) = 1 as texists from information_schema.tables where table_schema = &#39;npmrds&#39; and table_name = &#39;speed_truck_raw&#39;;&quot;)$texists){
+# write raw speed to the db
+sql &lt;- &quot;create table npmrds.speed_truck_raw (
+    tmc text
+    , measurement_tstamp timestamptz
+    ,speed float
+    ,average_speed float
+    ,reference_speed float
+    ,travel_time_seconds float
+    ,data_density text);&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+
+cmd &lt;- &quot;psql fratis -c \&quot;\\copy npmrds.speed_truck_raw from &#39;/projects/fratis/npmrds/Truck-for-I35-test/Truck-for-I35-test.csv&#39;\ with csv header\&quot;&quot;
+system(cmd)
+
+# day of week and hour
+sql &lt;- &quot;alter table npmrds.speed_truck_raw add column iso_dow integer;
+alter table npmrds.speed_truck_raw add column hr integer;
+update npmrds.speed_truck_raw set iso_dow = extract(isodow from measurement_tstamp);
+update npmrds.speed_truck_raw set hr = extract(hour from measurement_tstamp);&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+
+# summaries
+sql &lt;- &quot;
+--drop and create table
+drop table if exists npmrds.speed_truck_dow_hr;
+create table npmrds.speed_truck_dow_hr as
+--cte
+with 
+--the first date is a Monday
+d as (select &#39;1970-01-05 00:00:00&#39;::timestamptz as d)
+--generate a series by day from the first day to first day plus 13 days (2 weeks)
+, day1 as (select generate_series(d.d, d.d + 13 * interval &#39;1 day&#39;, interval &#39;1 day&#39;) as xdate from d)
+--get isodow (day 1 = Monday)
+, day2 as (select row_number() over() as iso_dow, * from day1)
+--truck speeds
+, x as (select * from npmrds.speed_truck_raw_corrected)
+--TMC length in miles
+, tmc as (select tmc, st_length(the_geom_32614) / 0.3048 / 5280 as length_mi from npmrds.roads_topo)
+--aggregate -- average speed over unique isodow and hour
+, y as (select tmc, iso_dow, hr, avg(speed) as speed from x group by tmc, iso_dow, hr order by tmc, iso_dow, hr)
+--another copy incremented by a week for wraparounds
+, z as (select tmc, iso_dow + 7 as iso_dow, hr, speed from y)
+, f as (select * from y union all select * from z)
+, f1 as (select f.*, xdate + hr * interval &#39;1 hour&#39; as measurement_tstamp from f join day2 using(iso_dow))
+--join with TMC length to estimate traversal time in hours
+, f2 as (select f1.*, t.length_mi, t.length_mi / f1.speed as traverse_hr from f1 join tmc as t using(tmc))
+select * from f2 order by tmc, measurement_tstamp;
+create index idx_speed_truck_dow_hr on npmrds.speed_truck_dow_hr using btree(tmc, iso_dow, hr);
+
+-- aggregate by segment to get overall estimated speed
+--drop and create table
+drop table if exists npmrds.speed_truck_segment;
+create table npmrds.speed_truck_segment as
+--cte
+with 
+x as (select *, 
+    --if measured speed is null use average speed
+    case when speed is null then average_speed
+    else speed
+    end as spd
+from npmrds.speed_truck_raw
+)
+--aggregate
+select tmc,  avg(spd) as speed from x group by tmc order by tmc;&quot;
+O &lt;- dbGetQuery(conn = fratis, statement = sql)
+}</code></pre>
+</div>
+<div id="postgis-topology" class="section level2">
+<h2><span class="header-section-number">6.3</span> PostGIS topology</h2>
+<p>In order for routing to work, it is necessary to have vertices at places where roads intersect. Optimally, the roads data would be structured with the correct topological linkages, but in the case of the NPMRDS data, it was necessary to force the creation of vertices.</p>
+<p>See <a href="http://blog.mathieu-leplatre.info/use-postgis-topologies-to-clean-up-road-networks.html">Use PostGIS topologies to clean-up road networks</a></p>
+<p>The following section shows commands and output for generating this topology for the data set used in this project.</p>
+<pre><code>--Create and associate the PostGIS topology:
+select topology.createtopology(&#39;topo_npmrds&#39;,32614);
+select topology.addtopogeometrycolumn(&#39;topo_npmrds&#39;,&#39;npmrds&#39;,&#39;texas&#39;,&#39;the_geom_32614_topo&#39;,&#39;LineString&#39;);
+ addtopogeometrycolumn 
+-----------------------
+                     2
+(1 row)
+
+--Convert linestrings to vertices and edges within the topology:
+UPDATE npmrds.texas SET the_geom_32614_topo = topology.toTopoGeom(the_geom_32614, &#39;topo_npmrds&#39;, 1, 0.5);
+
+
+select topology.createtopology(&#39;topo_npmrds_roads&#39;,32614);
+select topology.addtopogeometrycolumn(&#39;topo_npmrds_roads&#39;,&#39;npmrds&#39;,&#39;roads&#39;,&#39;the_geom_32614_topo&#39;,&#39;LineString&#39;);
+UPDATE npmrds.roads SET the_geom_32614_topo = topology.toTopoGeom(the_geom_32614, &#39;topo_npmrds_roads&#39;, 1, 0.5);</code></pre>
+<div id="join-attributes-topologically-split-geometries-and-speeds-also-create-id-source-and-target-columns" class="section level3">
+<h3><span class="header-section-number">6.3.1</span> Join attributes, topologically split geometries, and speeds, also create id, source, and target columns:</h3>
+<pre><code>drop table if exists npmrds.texas_topo;
+create table npmrds.texas_topo as 
+with 
+--original roads
+t as (select tmc, the_geom_32614_topo, roadnumber, roadname from npmrds.texas)
+--relation table
+, r as (select * from topo_npmrds.relation)
+--edge table
+, e as (select edge_id, geom as the_geom_32614 from topo_npmrds.edge)
+--speed averages
+, s as (select * from npmrds.speed_segment)
+--join to get geoms
+, f0 as (select t.tmc, t.roadnumber, t.roadname, e.the_geom_32614 from t, e, r where e.edge_id = r.element_id AND r.topogeo_id = (t.the_geom_32614_topo).id)
+--join to get speeds
+, f1 as (select f0.*, s.speed from f0, s where f0.tmc = s.tmc)
+--translate speed to impedance, meters to miles per hour
+,f2 as (select *, st_length(the_geom_32614) / 1609.34 / speed as cost,-10000000 as reverse_cost from f1)
+select tmc, roadnumber, roadname, speed, cost, reverse_cost, row_number() over() as id, null::int as source, null::int as target, the_geom_32614 from f2 order by tmc;</code></pre>
+</div>
+<div id="make-routable" class="section level3">
+<h3><span class="header-section-number">6.3.2</span> Make routable</h3>
+<pre><code>fratis=# SELECT pgr_createTopology(edge_table := &#39;npmrds.texas_topo&#39;, tolerance := 0.5, the_geom := &#39;the_geom_32614&#39;, clean := true);
+NOTICE:  PROCESSING:
+NOTICE:  pgr_createTopology(&#39;npmrds.texas_topo&#39;, 0.5, &#39;the_geom_32614&#39;, &#39;id&#39;, &#39;source&#39;, &#39;target&#39;, rows_where := &#39;true&#39;, clean := f)
+NOTICE:  Performing checks, please wait .....
+NOTICE:  Creating Topology, Please wait...
+NOTICE:  1000 edges processed
+NOTICE:  2000 edges processed
+NOTICE:  3000 edges processed
+NOTICE:  4000 edges processed
+NOTICE:  5000 edges processed
+NOTICE:  6000 edges processed
+NOTICE:  7000 edges processed
+NOTICE:  8000 edges processed
+NOTICE:  9000 edges processed
+NOTICE:  10000 edges processed
+NOTICE:  11000 edges processed
+NOTICE:  12000 edges processed
+NOTICE:  13000 edges processed
+NOTICE:  14000 edges processed
+NOTICE:  15000 edges processed
+NOTICE:  16000 edges processed
+NOTICE:  17000 edges processed
+NOTICE:  18000 edges processed
+NOTICE:  19000 edges processed
+NOTICE:  20000 edges processed
+NOTICE:  21000 edges processed
+NOTICE:  22000 edges processed
+NOTICE:  23000 edges processed
+NOTICE:  24000 edges processed
+NOTICE:  -------------&gt; TOPOLOGY CREATED FOR  24524 edges
+NOTICE:  Rows with NULL geometry or NULL id: 0
+NOTICE:  Vertices table for table npmrds.texas_topo is: npmrds.texas_topo_vertices_pgr
+NOTICE:  ----------------------------------------------
+ pgr_createtopology 
+--------------------
+ OK
+(1 row)</code></pre>
+</div>
+</div>
+<div id="fixing-geometry" class="section level2">
+<h2><span class="header-section-number">6.4</span> Fixing geometry</h2>
+<p>It was found that geometries were missing or otherwise problematic. See figures:</p>
+<p>Extra lines:</p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/dangling_nodes.png&quot;)</code></pre>
+<p><img src="network_data_problems/dangling_nodes.png" width="50%" /></p>
+<p>Missing links:</p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/missing_links.png&quot;)</code></pre>
+<p><img src="network_data_problems/missing_links.png" width="50%" /></p>
+<p>Missing ramps:</p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/missing_ramp.png&quot;)</code></pre>
+<p><img src="network_data_problems/missing_ramp.png" width="50%" /></p>
+<p>Missing ramp added:</p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/missing_ramp_added.png&quot;)</code></pre>
+<p><img src="network_data_problems/missing_ramp_added.png" width="50%" /></p>
+<p>Misnamed roads:</p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/wrongway_feldman.png&quot;)</code></pre>
+<p><img src="network_data_problems/wrongway_feldman.png" width="60%" /></p>
+<pre class="r"><code>include_graphics(&quot;network_data_problems/wrongway_roger.png&quot;)</code></pre>
+<p><img src="network_data_problems/wrongway_roger.png" width="60%" /></p>
+<p>In order to fix missing links, all nodes that had only one connecting segment were identified (n = 1031), and each was visually inspected and repaired where applicable (generally adding missing links and connections).</p>
+<p>Script for generating lone vertices</p>
+<pre><code>drop table if exists npmrds.lonevertex;
+create table npmrds.lonevertex as 
+with 
+--vetices
+v as (select id, the_geom_32614 from npmrds.texas_topo_vertices_pgr)
+--lines
+, l as (select tmc, source, target, roadname, st_length(the_geom_32614) as length_m from npmrds.texas_topo)
+--texas (for f-system)
+, t as (select tmc, f_system from npmrds.texas)
+--lines with f system
+, lt as (select * from l join t using(tmc) where f_system &lt; 4)
+--relate
+, vl as (select * from v join lt on(v.id = lt.source or v.id = lt.target))
+--count
+, vlc as (select id, count(*) from vl group by id)
+--solitaries
+, vlc1 as (select * from vlc where count = 1)
+, f as (select * from vlc1 order by id)
+--points
+, p as (select id, count, the_geom_32614 from f join v using(id))
+--join back on texas_topo for attributes
+, pt as (select row_number() over(order by length_m) as gid, * from p join lt on(p.id = lt.source or p.id = lt.target) order by length_m)
+--select * from p;
+select * from pt;</code></pre>
+<p>A copy of the roads was created for editing (<code>npmrds.texas_topo_edited_20180426</code>), which was then used to create a pgRouting topology and vertices, and its own lone vertex table:</p>
+<pre><code>alter table npmrds.texas_topo_edited_20180426 rename to roads;
+SELECT pgr_createTopology(edge_table := &#39;npmrds.roads&#39;, tolerance := 0.5, the_geom := &#39;the_geom_32614&#39;, clean := true);</code></pre>
+<p>After editing the line data it was necessary to redo the PostGIS topology.</p>
+<pre><code>--This creates and updates the PostGIS topology
+select topology.createtopology(&#39;topo_npmrds_roads&#39;,32614);
+select topology.addtopogeometrycolumn(&#39;topo_npmrds_roads&#39;,&#39;npmrds&#39;,&#39;roads&#39;,&#39;the_geom_32614_topo&#39;,&#39;LineString&#39;);
+UPDATE npmrds.roads SET the_geom_32614_topo = topology.toTopoGeom(the_geom_32614, &#39;topo_npmrds_roads&#39;, 1, 0.5);
+
+--This then joins the new topology data with road attribute data
+drop table if exists npmrds.roads_topo;
+create table npmrds.roads_topo as 
+with 
+--original roads
+t as (select tmc, the_geom_32614_topo, roadnumber, roadname from npmrds.roads)
+--relation table
+, r as (select * from topo_npmrds_roads.relation)
+--edge table
+, e as (select edge_id, geom as the_geom_32614 from topo_npmrds_roads.edge)
+--speed averages
+, s as (select * from npmrds.speed_truck_segment)
+--join to get geoms
+, f0 as (select t.tmc, t.roadnumber, t.roadname, e.the_geom_32614 from t, e, r where e.edge_id = r.element_id AND r.topogeo_id = (t.the_geom_32614_topo).id)
+--join to get speeds
+, f1 as (select f0.*, s.speed from f0, s where f0.tmc = s.tmc)
+--translate speed to impedance, meters to miles per hour
+,f2 as (select *, st_length(the_geom_32614) / 1609.34 / speed as cost,-10000000 as reverse_cost from f1)
+select tmc, roadnumber, roadname, speed, cost, reverse_cost, row_number() over() as id, null::int as source, null::int as target, the_geom_32614 from f2 order by tmc;
+
+SELECT pgr_createTopology(edge_table := &#39;npmrds.roads_topo&#39;, tolerance := 0.5, the_geom := &#39;the_geom_32614&#39;, clean := true);</code></pre>
+</div>
+<div id="plpgsql-scripts" class="section level2">
+<h2><span class="header-section-number">6.5</span> PL/pgSQL scripts</h2>
+<p>This section contains the scripts that create the functions that perform the various steps necessary to perform the routing.</p>
+<div id="wrapper" class="section level3">
+<h3><span class="header-section-number">6.5.1</span> Wrapper</h3>
+<p>The <code>npmrds_run_wrapper</code> function performs a series of steps, some of which execute SQL code directly (e.g., copying from the work zone delay CSV file to a database table), and some of which call other functions that are defined in other scripts in this section (e.g., many-to-many O/D routing). The function reads a number of different parameters, as shown in <a href="#running">Running</a>.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/npmrds_run_wrapper.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>--master function for generating routes
+
+drop function if exists npmrds_run_wrapper(
+    _constructiondelayfile text
+    , _constructionzonefile text
+    , _viavertexfile text
+    , _edge_tablename text
+    , _edge_geomfield text
+    , _speed_tablename text
+    , _srid int
+    , _edge_speedfield text
+    , _edge_costfield text
+    , _edge_reversecostfield TEXT
+    , _edge_vertex_tablename text
+    , _edge_vertex_geomfield text
+    , _mytol integer
+    , _n_verts integer
+    , _time_init text
+    , _origin_lat float
+    , _origin_lon float
+    , _dest_lat float
+    , _dest_lon float
+    , _forward bool);
+create function npmrds_run_wrapper(
+    _constructiondelayfile text
+    , _constructionzonefile text
+    , _viavertexfile text
+    , _edge_tablename text
+    , _edge_geomfield text
+    , _speed_tablename text
+    , _srid int
+    , _edge_speedfield text
+    , _edge_costfield text
+    , _edge_reversecostfield TEXT
+    , _edge_vertex_tablename text
+    , _edge_vertex_geomfield text
+    , _mytol integer
+    , _n_verts integer
+    , _time_init text
+    , _origin_lat float
+    , _origin_lon float
+    , _dest_lat float
+    , _dest_lon float
+    , _forward bool default true)
+returns void as
+$$
+
+declare 
+    _sql text;
+    _timestep_sql text;
+
+begin
+
+_sql := &#39;
+--############################### CLEANING
+--start by house cleaning
+select routing_cleaner();
+
+--############################### DELAYS
+--drop delay if exists
+drop table if exists routing.constructiondelay;
+--create table
+create table routing.constructiondelay(zone_num int, delay_start timestamptz, delay_end timestamptz, delay_minutes int);
+--copy data into table
+copy routing.constructiondelay from &#39;&#39;&#39;|| _constructiondelayfile ||&#39;&#39;&#39; with csv header;
+
+--############################### WORK ZONES
+--drop zones if exists
+drop table if exists routing.construction_zone;
+--create table
+create table routing.construction_zone(zone_num int, tmc text);
+--copy data into table
+copy routing.construction_zone from &#39;&#39;&#39;|| _constructionzonefile ||&#39;&#39;&#39; with csv header;
+
+--############################### ISO_DOW, HR, TMC format from delays to make a new version of the ISODOW table
+
+
+--############################### VIA POINTS
+drop table if exists routing.via_vertex;
+create table routing.via_vertex (id integer);
+copy routing.via_vertex from &#39;&#39;&#39;|| _viavertexfile ||&#39;&#39;&#39; with csv header;
+
+--#######################
+--run routes to establish O/D, segments
+--no delay, base route, to establish origin, destination, and sequence of TMCs
+select * from npmrds_dijkstra_m2m_ll(
+    _out_tablename := &#39;&#39;baseroute&#39;&#39;
+    , _time_start := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _origin_lat := &#39;|| _origin_lat ||&#39;    
+    , _origin_lon := &#39;|| _origin_lon ||&#39;
+    , _dest_lat := &#39;|| _dest_lat ||&#39;
+    , _dest_lon := &#39;|| _dest_lon ||&#39;
+    , _srid := &#39;|| _srid ||&#39;
+    , _edge_tablename := &#39;&#39;&#39;|| _edge_tablename ||&#39;&#39;&#39;
+    , _edge_geomfield := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _edge_costfield := &#39;&#39;&#39;|| _edge_costfield ||&#39;&#39;&#39;
+    , _edge_reversecostfield := &#39;&#39;&#39;|| _edge_reversecostfield ||&#39;&#39;&#39;
+    , _edge_speedfield := &#39;&#39;&#39;|| _edge_speedfield ||&#39;&#39;&#39;
+    , _edge_vertex_tablename := &#39;&#39;&#39;|| _edge_vertex_tablename ||&#39;&#39;&#39;
+    , _edge_vertex_geomfield := &#39;&#39;&#39;|| _edge_vertex_geomfield ||&#39;&#39;&#39;
+    , _mytol := &#39;|| _mytol ||&#39;
+    , _n_verts := &#39;|| _n_verts ||&#39;);
+
+--&quot;via&quot;
+--no delay
+select * from npmrds_dijkstra_ll_via(
+    _out_tablename := &#39;&#39;altbase_&#39;&#39;
+    , _route_tablename := &#39;&#39;routing.baseroute&#39;&#39;
+    , _edge_tablename := &#39;&#39;&#39;|| _edge_tablename ||&#39;&#39;&#39;);
+
+--####################### TIME STEPPING
+--bestroute
+select 
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.bestroute from 
+npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;baseroute&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := false
+    ) order by rgid;
+
+--bestroute with delay
+select 
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.bestroute_delay from 
+npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;baseroute&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := true
+    ) order by rgid;
+
+--alternative 1
+--no delay
+select 
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.altroute_best1
+from npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;altbase_best1&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := false
+    ) order by rgid;
+
+    select 
+    
+--with delay
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.altroute_best1_delay 
+from npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;altbase_best1&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := true
+    ) order by rgid;
+
+--alternative 2
+--no delay
+select 
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.altroute_best2
+from npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;altbase_best2&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := false
+    ) order by rgid;
+
+--with delay
+select 
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as &#39;|| _edge_geomfield ||&#39;
+into routing.altroute_best2_delay
+from npmrds_route_timestep_dow_hr_delay(
+    _route_table := &#39;&#39;altbase_best2&#39;&#39;
+    , _route_geom_field := &#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;
+    , _init_time := &#39;&#39;&#39;|| _time_init ||&#39;&#39;&#39;
+    , _speed_table := &#39;&#39;&#39;|| _speed_tablename ||&#39;&#39;&#39;
+    , _forward := &#39;|| _forward ||&#39;
+    , _use_delay := true
+    ) order by rgid;
+
+    
+--driving data
+select * from driving_directions(&#39;&#39;routing.bestroute&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+select * from driving_directions(&#39;&#39;routing.bestroute_delay&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+
+select * from driving_directions(&#39;&#39;routing.altroute_best1&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+select * from driving_directions(&#39;&#39;routing.altroute_best1_delay&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+
+select * from driving_directions(&#39;&#39;routing.altroute_best2&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+select * from driving_directions(&#39;&#39;routing.altroute_best2_delay&#39;&#39;,&#39;&#39;&#39;|| _edge_geomfield ||&#39;&#39;&#39;);
+&#39;;
+
+raise notice &#39;%&#39;, _sql;
+
+execute _sql;
+
+raise notice &#39;complete.&#39;;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+--example
+select * from npmrds_run_wrapper(
+    _constructiondelayfile := &#39;/projects/fratis/npmrds/construction_delays.csv&#39;
+    , _constructionzonefile := &#39;/projects/fratis/npmrds/construction_zones.csv&#39;
+    , _viavertexfile := &#39;/projects/fratis/npmrds/via_ids.csv&#39;
+    , _edge_tablename := &#39;npmrds.roads_topo&#39;
+    , _edge_geomfield := &#39;the_geom_32614&#39;
+    , _speed_tablename:= &#39;npmrds.speed_truck_dow_hr&#39;
+    , _srid := 32614
+    , _edge_speedfield := &#39;speed_truck&#39;
+    , _edge_costfield := &#39;cost_truck&#39;
+    , _edge_reversecostfield := &#39;reverse_cost_truck&#39;
+    , _edge_vertex_tablename := &#39;npmrds.roads_topo_vertices_pgr&#39;
+    , _edge_vertex_geomfield := &#39;the_geom&#39;
+    , _mytol := 10000
+    , _n_verts := 10
+    , _time_init := &#39;2017-04-19 17:00&#39;
+    , _origin_lat := 32.66842
+    , _origin_lon := -97.32203
+    , _dest_lat := 29.456373
+    , _dest_lon := -98.402132
+    , _forward := false);</code></pre>
+</div>
+<div id="cleaner" class="section level3">
+<h3><span class="header-section-number">6.5.2</span> Cleaner</h3>
+<p>During the routing process, tables are written to the <code>routing</code> schema. As a first step, any tables within that schema are removed.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/routing_cleaner.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>--clean up routing
+
+drop function if exists routing_cleaner();
+create function routing_cleaner()
+returns void as
+$$
+
+declare 
+    _dropsql text;
+    _dropsql2 text;
+    _droprec record;
+
+begin
+    
+--#######################################
+--drop any existing alternate routes
+_dropsql := &#39;select table_name from information_schema.tables where table_schema ~ &#39;&#39;routing&#39;&#39;&#39;;
+for _droprec in execute _dropsql loop
+    _dropsql2 := &#39;drop table routing.&#39;|| _droprec.table_name ||&#39;&#39;;
+    execute _dropsql2;
+    raise notice &#39;dropping %&#39;, _droprec.table_name;
+end loop;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+select routing_cleaner();
+
+select table_name from information_schema.tables where table_schema ~ &#39;routing&#39; ;--and table_name ~ &#39;^altroute&#39;;</code></pre>
+</div>
+<div id="initial-routing" class="section level3">
+<h3><span class="header-section-number">6.5.3</span> Initial routing</h3>
+<p>The function <code>npmrds_dijkstra_m2m_ll</code> generates the fastest route between an origin and destination point. The origin and destination longitude and latitude are specified; these points are then used to select a set of vertices around each O/D, and routes are generated from each pair. The fastest of the <span class="math inline">\(n_{origin} \times n_{destination}\)</span> routes is selected as output.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/npmrds_dijkstra_m2m_ll.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>-- a function to generate the best route
+-- creates a named table
+--relies on pgr_dijkstra in pgRouting
+
+drop function if exists npmrds_dijkstra_m2m_ll(      
+      _out_tablename text   --tablename to create in routing
+    , _time_start text --time to start
+    , _origin_lat float --origin latitude
+    , _origin_lon float --origin longitude
+    , _dest_lat float   --origin latitude
+    , _dest_lon float   --origin longitude
+    , _srid int         --EPSG code for projected data, e.g., 32614 = UTM 12 N
+    , _edge_tablename text --default &#39;npmrds.roads_topo&#39; -- the name of the table containing network data, assume has columns id, source, target.      e.g., npmrds.texas_noded
+    , _edge_geomfield text --default &#39;the_geom_32614&#39; -- column name containing network geometry.       e.g., the_geom_32614
+    , _edge_costfield text --default &#39;cost_truck&#39; -- column representing costs
+    , _edge_reversecostfield text --default &#39;reverse_cost_truck&#39; -- column representing reverse costs
+    , _edge_speedfield text --default &#39;speed_truck&#39; -- column containing speed
+    , _edge_vertex_tablename text --default &#39;npmrds.roads_topo_vertices_pgr&#39; -- the name of the table containing network nodes data.        e.g., npmrds.texas_noded_vertices_pgr
+    , _edge_vertex_geomfield text --default &#39;the_geom&#39; -- column name containing vertex geometry
+    , _mytol int --default 10000
+    , _n_verts int --default 5
+    );
+--_odtablename: {npmrds.odregional, npmrds.odnational)
+--_mytol is the tolerance for looking for vertices around an OD pair&#39;s points.
+--_n_verts is the number of vertices close to the O and D form many-to-many
+create function npmrds_dijkstra_m2m_ll(
+      _out_tablename text   --tablename to create in routing
+    , _time_start text --time to start
+    , _origin_lat float --origin latitude
+    , _origin_lon float --origin longitude
+    , _dest_lat float   --origin latitude
+    , _dest_lon float   --origin longitude
+    , _srid int         --EPSG code for projected data, e.g., 32614 = UTM 12 N
+    , _edge_tablename text default &#39;npmrds.roads_topo&#39; -- the name of the table containing network data, assume has columns id, source, target.      e.g., npmrds.texas_noded
+    , _edge_geomfield text default &#39;the_geom_32614&#39; -- column name containing network geometry.       e.g., the_geom_32614
+    , _edge_costfield text default &#39;cost_truck&#39; -- column representing costs
+    , _edge_reversecostfield text default &#39;reverse_cost_truck&#39; -- column representing reverse costs
+    , _edge_speedfield text default &#39;speed_truck&#39; -- column containing speed
+    , _edge_vertex_tablename text default &#39;npmrds.roads_topo_vertices_pgr&#39; -- the name of the table containing network nodes data.        e.g., npmrds.texas_noded_vertices_pgr
+    , _edge_vertex_geomfield text default &#39;the_geom&#39; -- column name containing vertex geometry
+    , _mytol int default 10000
+    , _n_verts int default 5)
+returns void as
+$$
+#variable_conflict use_column
+
+DECLARE
+    _mysql text; -- the SQL string    
+
+begin
+
+--if there was no start time entered,use NOW()
+if _time_start is null then
+    _time_start = now();
+end if;
+
+_mysql := &#39;
+drop table if exists routing.&#39;|| _out_tablename ||&#39;;
+create table routing.&#39;|| _out_tablename ||&#39; as
+with
+--start time
+tm as (select &#39;&#39;&#39;|| _time_start ||&#39;&#39;&#39;::timestamptz as time_start)
+--tm as (select quote_literal(_time_start)::timestamptz as time_start)
+--tolerance
+, t as (select &#39;|| _mytol ||&#39; as tol)
+--edges
+, e as (select *, id as edge, &#39;|| _edge_geomfield ||&#39; as geom_e, &#39;|| _edge_costfield ||&#39;, &#39;|| _edge_reversecostfield ||&#39; from &#39;|| _edge_tablename ||&#39;)
+--vertices
+, v as (select id as v_id, &#39;|| _edge_vertex_geomfield ||&#39; as geom_v from &#39;|| _edge_vertex_tablename ||&#39;)
+--origin, destination
+, o as (select st_transform(st_geomfromewkt(&#39;&#39;SRID=4326;POINT(&#39;|| _origin_lon ||&#39; &#39;|| _origin_lat ||&#39;)&#39;&#39;), &#39;|| _srid ||&#39;) as geom_o)
+, d as (select st_transform(st_geomfromewkt(&#39;&#39;SRID=4326;POINT(&#39;|| _dest_lon ||&#39; &#39;|| _dest_lat ||&#39;)&#39;&#39;), &#39;|| _srid ||&#39;) as geom_d)
+--vertices near origin
+, vo as (select v.v_id, geom_v from v, o, t where st_dwithin(geom_v, geom_o, t.tol))
+--vertices near destination
+, vd as (select v.v_id, geom_v, st_distance(geom_v, geom_d) from v, d, t where st_dwithin(geom_v, geom_d, t.tol))
+--vertex closest to origin
+, vco as (select * from vo, o order by geom_v &lt;-&gt; geom_o limit &#39;|| _n_verts ||&#39;)
+--vertex closest to destination
+, vcd as (select * from vd, d order by geom_v &lt;-&gt; geom_d limit &#39;|| _n_verts ||&#39;)
+--route
+, nd as (select pgr_dijkstra(&#39;&#39;SELECT id, source, target, &#39;|| _edge_costfield ||&#39; as cost, &#39;|| _edge_reversecostfield ||&#39; as reversecost FROM &#39;|| _edge_tablename  ||&#39; where &#39;|| _edge_costfield ||&#39; is not null&#39;&#39;, array[vco.v_id], array[vcd.v_id], true) as c from vco, vcd)
+, n0 as (select (c).* from nd)
+, n as (select start_vid  ||&#39;&#39;_&#39;&#39;|| end_vid as sevid, * from n0)
+--summed hours for shortest path
+, hrs as (select sevid, sum(cost) from n group by sevid order by sum(cost) asc limit 1)
+--records from shortest path
+, nh as (select * from n where sevid = (select sevid from hrs))
+--join to edges
+, nj as (select nh.*, e.&#39;|| _edge_geomfield ||&#39;, e.&#39;|| _edge_speedfield ||&#39;, roadname::text, tmc::text, (st_length(&#39;|| _edge_geomfield ||&#39;) / 1609.34)::float as length_mi from nh left join e using(edge), tm where &#39;|| _edge_geomfield ||&#39; is not null order by path_seq)
+--, tx as (select *, time_start + interval &#39;&#39;1 hour&#39;&#39; * agg_cost as time_start_of_segment, time_start + interval &#39;&#39;1 hour&#39;&#39; * (cost + agg_cost) as time_end_of_segment from nj, tm)
+, f as (select split_part(sevid, &#39;&#39;_&#39;&#39;, 1)::int as start_vertex, split_part(sevid, &#39;&#39;_&#39;&#39;, 2)::int as end_vertex, -1 as via_vertex, row_number() over() as rgid, &#39;|| _origin_lat ||&#39;::float as origin_lat, &#39;|| _origin_lon ||&#39;::float as origin_lon, &#39;|| _dest_lat ||&#39;::float as dest_lat, &#39;|| _dest_lon ||&#39;::float as dest_lon,
+roadname, tmc, &#39;|| _edge_speedfield ||&#39;, cost as hours, length_mi, &#39;|| _edge_geomfield ||&#39;::geometry(LineString, &#39;|| _srid ||&#39;) from nj)
+select * from f;
+create index idx_&#39;|| _out_tablename ||&#39; on routing.&#39;|| _out_tablename ||&#39; using btree(tmc);
+&#39;
+;
+
+--raise notice &#39;%&#39;, _mysql;
+
+execute _mysql;
+return;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+-- -- example 1
+-- drop table if exists npmrds.austin_sanantonio;
+-- create table npmrds.austin_sanantonio as 
+-- with
+-- r as (select * from npmrds_dijkstra_m2m(_time_start := &#39;2017-04-01 12:00:00-07&#39;, _odpairid:= 3))
+-- , t as (select distinct tmc, roadname from npmrds.roads) 
+-- , j1 as (select t.roadname, r.* from r join t using(tmc) order by time_start_of_segment)
+-- , j2 as (select row_number() over() as seq, * from j1)
+-- , j3 as (select row_number() OVER(ORDER BY seq ASC) - row_number() OVER(PARTITION BY roadname ORDER BY seq ASC) AS grp, * from j2 order by seq)
+-- , j4 as (select min(seq) over(partition by grp) as seq2, * from j3)
+-- , j5 as (select seq2, roadname, date_trunc(&#39;second&#39;, min(time_start_of_segment)) as time_start_of_segment, date_trunc(&#39;second&#39;, max(time_end_of_segment)) as time_end_of_segment, round((sum(hours::numeric))*60, 1) as minutes, round(sum(length_mi), 1) as length_mi, st_linemerge(st_union(geom))::geometry(linestring, 32614) as geom from j4 group by seq2, roadname order by seq2)
+-- , j6 as (select row_number() over() as gid, * from j5)
+-- select * from j6;
+-- 
+-- --example 2
+-- drop table if exists npmrds.dallas_waco;
+-- create table npmrds.wallas_waco as 
+-- with
+-- r as (select * from npmrds_dijkstra_m2m(_time_start := &#39;2017-04-01 12:00:00-07&#39;, _odpairid:= 8))
+-- , t as (select distinct tmc, roadname from npmrds.roads) 
+-- , j1 as (select t.roadname, r.* from r join t using(tmc) order by time_start_of_segment)
+-- , j2 as (select row_number() over() as seq, * from j1)
+-- , j3 as (select row_number() OVER(ORDER BY seq ASC) - row_number() OVER(PARTITION BY roadname ORDER BY seq ASC) AS grp, * from j2 order by seq)
+-- , j4 as (select min(seq) over(partition by grp) as seq2, * from j3)
+-- , j5 as (select seq2, roadname, date_trunc(&#39;second&#39;, min(time_start_of_segment)) as time_start_of_segment, date_trunc(&#39;second&#39;, max(time_end_of_segment)) as time_end_of_segment, round((sum(hours::numeric))*60, 1) as minutes, round(sum(length_mi), 1) as length_mi, st_linemerge(st_union(geom))::geometry(linestring, 32614) as geom from j4 group by seq2, roadname order by seq2)
+-- , j6 as (select row_number() over() as gid, * from j5)
+-- select * from j6;
+
+
+--select * from npmrds_dijkstra_m2m_ll(&#39;2018-04-23 12:00&#39;, 30.2888, -97.62944, 29.456373, -98.402132, 32614);
+
+--select * from npmrds_dijkstra_m2m_ll(&#39;2018-04-23 12:00&#39;, 31.132861, -97.359295, 30.009145, -97.858829, 32614, &#39;npmrds.roads&#39;, &#39;the_geom_32614&#39;, &#39;npmrds.roads_vertices_pgr&#39;, &#39;the_geom_32614&#39;);
+
+--select * from npmrds_dijkstra_m2m_ll(&#39;2018-04-23 12:00&#39;, 31.132046, -97.360024, 32.645262, -96.865897, 32614, &#39;npmrds.roads_topo&#39;, &#39;the_geom_32614&#39;, &#39;npmrds.roads_topo_vertices_pgr&#39;, &#39;the_geom&#39;);
+
+--select * from npmrds_dijkstra_m2m_ll(&#39;bestroute&#39;, &#39;2017-04-19 12:00&#39;, 31.807419, -97.099599, 29.456373, -98.402132, 32614, &#39;npmrds.roads_topo&#39;, &#39;the_geom_32614&#39;, &#39;cost_truck&#39;, &#39;reverse_cost_truck&#39;, &#39;speed_truck&#39;, &#39;npmrds.roads_topo_vertices_pgr&#39;, &#39;the_geom&#39;);
+
+select * from npmrds_dijkstra_m2m_ll(
+      _out_tablename := &#39;baseroute&#39;
+    , _time_start := &#39;2017-04-19 12:00&#39;
+    , _origin_lat := 31.807419
+    , _origin_lon := -97.099599
+    , _dest_lat := 29.456373
+    , _dest_lon := -98.402132
+    , _srid := 32614
+    , _edge_tablename := &#39;npmrds.roads_topo&#39;
+    , _edge_geomfield := &#39;the_geom_32614&#39;
+    , _edge_costfield := &#39;cost_truck&#39;
+    , _edge_reversecostfield := &#39;reverse_cost_truck&#39;
+    , _edge_speedfield := &#39;speed_truck&#39;
+    , _edge_vertex_tablename := &#39;npmrds.roads_topo_vertices_pgr&#39;
+    , _edge_vertex_geomfield := &#39;the_geom&#39;);
+
+select * from routing.baseroute;</code></pre>
+</div>
+<div id="alternate-routes" class="section level3">
+<h3><span class="header-section-number">6.5.4</span> Alternate routes</h3>
+<p>With the fastest route between the origin and destination, a set of alternate routes is generated using the same pair of O/D vertices as in the fastest route, but with all user-defined “via” points as intermediate locations to pass through. Similar to the initial routing function, <code>npmrds_dijkstra_ll_via</code> identifies the fastest two alternate routes.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/npmrds_dijkstra_ll_via.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>-- a function to generate multiple routes with &quot;via&quot;. each route is in routing.altbase_1 ... altbase_n
+
+drop function if exists npmrds_dijkstra_ll_via(
+      _out_tablename text
+    , _route_tablename text
+    , _srid int
+    , _via_tablename text
+    , _edge_tablename text
+    , _edge_geomfield text
+    , _edge_costfield text
+    , _edge_reversecostfield text
+    , _edge_speedfield text);
+--_odtablename: {npmrds.odregional, npmrds.odnational)
+--_mytol is the tolerance for looking for vertices around an OD pair&#39;s points.
+--_n_verts is the number of vertices close to the O and D form many-to-many
+
+create function npmrds_dijkstra_ll_via(
+      _out_tablename text
+    , _route_tablename text default &#39;routing.baseroute&#39;
+    , _srid int default 32614        --EPSG code for projected data, e.g., 32614 = UTM 12 N
+    , _via_tablename text default &#39;routing.via_vertex&#39; --tablename containing &quot;via&quot; vertices
+    , _edge_tablename text default &#39;npmrds.roads_topo&#39; -- the name of the table containing network data, assume has columns id, source, target.      e.g., npmrds.roads_noded
+    , _edge_geomfield text default &#39;the_geom_32614&#39; -- column name containing network geometry.       e.g., the_geom_32614
+    , _edge_costfield text default &#39;cost_truck&#39; -- column representing costs
+    , _edge_reversecostfield text default &#39;reverse_cost_truck&#39; -- column representing reverse costs
+    , _edge_speedfield text default &#39;speed_truck&#39; -- column containing speed
+)
+    
+returns void as
+$$
+#variable_conflict use_column
+
+--declare variables that are instantiated at run time
+DECLARE
+    _mysql text;            --the SQL string
+    _via_sql text;          --the SQL for getting origin and destination 
+    _via_vid int;           --the vertex ID used in the loop
+    _vrec record;           --record with via vertex id
+    _route record;          --record
+    _routenum int;          --route number for multiple runs
+    _start_vertex int;        --origin vertex id
+    _end_vertex text;         --destination vertex id
+    _od_sql text;           --sql to get input parameters
+    _odrec record;          --results of that sql
+    _origin_lat float;
+    _origin_lon float;
+    _dest_lat float;
+    _dest_lon float;
+--    _time_start timestamptz;
+    --for dropping alternates before we start
+    _dropsql text;
+    _dropsql2 text;
+    _droprec record;
+    --for getting the best alternates
+    bestalt_sql text; 
+
+--begin the logic
+BEGIN
+
+--#######################################
+--input table parameters
+_od_sql := &#39;select start_vertex, end_vertex, origin_lat, origin_lon, dest_lat, dest_lon from &#39;|| _route_tablename ||&#39; group by start_vertex, end_vertex, origin_lat, origin_lon, dest_lat, dest_lon&#39;;
+
+execute _od_sql into _odrec;
+
+_start_vertex := _odrec.start_vertex;
+_end_vertex := _odrec.end_vertex;
+_origin_lat := _odrec.origin_lat;
+_origin_lon := _odrec.origin_lon;
+_dest_lat := _odrec.dest_lat;
+_dest_lon := _odrec.dest_lon;
+--_time_start := _odrec.time_start;
+
+--raise notice &#39;%&#39;, _odrec;
+
+--####################################### 
+--&quot;via&quot; ids
+_via_sql := &#39;
+select id as via_vid from &#39;|| _via_tablename ||&#39; order by id;
+&#39;;
+--raise notice &#39;vsql: %&#39;, _vsql;
+
+--#######################################
+--loop over all via points
+for _vrec in execute _via_sql loop
+
+--raise notice &#39;vrec: %, %&#39;, _routenum, _vrec;
+
+--&quot;via&quot; vertext ID for this record
+_via_vid:= _vrec.via_vid;
+
+_mysql := &#39;
+drop table if exists routing.&#39;|| _out_tablename || _via_vid ||&#39;;
+create table routing.&#39;|| _out_tablename || _via_vid ||&#39; as
+with
+--edges
+e as (select *, id as edge, &#39;|| _edge_geomfield ||&#39; as geom_e, &#39;|| _edge_costfield ||&#39;, &#39;|| _edge_reversecostfield ||&#39; from &#39;|| _edge_tablename ||&#39;)
+--route using pgr_disjkstravia
+, nd as (select pgr_dijkstravia(&#39;&#39;SELECT id, source, target, &#39;|| _edge_costfield ||&#39; as cost, &#39;|| _edge_reversecostfield ||&#39; as reversecost FROM &#39;|| _edge_tablename ||&#39; where &#39;|| _edge_costfield ||&#39; is not null&#39;&#39;, array[&#39;|| _start_vertex ||&#39;, &#39;|| _via_vid ||&#39;, &#39;|| _end_vertex ||&#39;], true) as c)
+, n0 as (select (c).* from nd)
+, n as (select start_vid ||&#39;&#39;_&#39;&#39;|| end_vid as sevid, * from n0)
+--join to edges
+, nj as (select n.*, e.&#39;|| _edge_geomfield ||&#39;, e.&#39;|| _edge_speedfield ||&#39;, roadname::text, tmc::text, (st_length(&#39;|| _edge_geomfield ||&#39;) / 1609.34)::float as length_mi from n left join e using(edge) where &#39;|| _edge_geomfield ||&#39; is not null order by path_id, path_seq)
+--note route_agg_cost is the running total across any sub-routes
+--, tx as (select *, time_start + interval &#39;&#39;1 hour&#39;&#39; * route_agg_cost as time_start_of_segment, time_start + interval &#39;&#39;1 hour&#39;&#39; * (cost + route_agg_cost) as time_end_of_segment from nj, tm)
+, f as (select path_id
+    , &#39;|| _vrec.via_vid ||&#39; as routenum
+    , row_number() over() as rgid
+    , &#39;|| _origin_lat ||&#39; as origin_lat
+    , &#39;|| _origin_lon ||&#39; origin_lon
+    , &#39;|| _dest_lat ||&#39; as dest_lat
+    , &#39;|| _dest_lon ||&#39; as dest_lon
+    , roadname
+    , tmc
+    , &#39;|| _edge_speedfield ||&#39;
+    , cost as hours
+    --, time_start_of_segment
+    --, time_end_of_segment
+    , length_mi
+    , &#39;|| _edge_geomfield ||&#39;::geometry(LineString, &#39;|| _srid ||&#39;)
+    , array[&#39;|| _start_vertex ||&#39;, &#39;|| _via_vid ||&#39;, &#39;|| _end_vertex ||&#39;] as start_via_end_id
+    from nj)
+select * from f
+;&#39;
+;
+
+--execute _mysql into _route;
+--raise notice &#39;%&#39;, _mysql;
+
+execute _mysql;
+
+--######## end the loop
+end loop;
+
+
+--########
+--loop over all via points to create an aggregate of all alternate routes, to support finding the best 2
+_routenum := 0;
+for _vrec in execute _via_sql loop
+    _routenum := _routenum + 1;
+    --raise notice &#39;%&#39;, _routenum;
+    if _routenum = 1 then
+        execute &#39;drop table if exists routing.&#39;|| _out_tablename ||&#39;all; create table routing.&#39;|| _out_tablename ||&#39;all as select * from routing.&#39;|| _out_tablename || _vrec.via_vid ||&#39;&#39;;
+    else
+        execute &#39;insert into routing.&#39;|| _out_tablename ||&#39;all select * from routing.&#39;|| _out_tablename || _vrec.via_vid ||&#39;&#39;;
+    end if;
+end loop;
+
+--########
+--now find the best 2 of the alternate routes, 
+bestalt_sql := &#39;
+drop table if exists routing.&#39;|| _out_tablename ||&#39;best;
+create table routing.&#39;|| _out_tablename ||&#39;best as
+with
+routeagg0 as (select routenum, count(distinct path_id), sum(hours) as hours_tot from routing.&#39;|| _out_tablename ||&#39;all group by routenum)
+, routeagg1 as (select routenum, hours_tot from routeagg0 where count &gt; 1 order by hours_tot asc limit 2)
+select * from routing.&#39;|| _out_tablename ||&#39;all where routenum in (select routenum from routeagg1) order by routenum, rgid;
+
+drop table if exists routing.&#39;|| _out_tablename ||&#39;best1;
+create table routing.&#39;|| _out_tablename ||&#39;best1 as 
+with 
+--first routenum
+rn as (select distinct routenum from routing.&#39;|| _out_tablename ||&#39;best group by routenum order by routenum asc limit 1)
+select * from routing.&#39;|| _out_tablename ||&#39;best where routenum in (select routenum from rn);
+
+drop table if exists routing.&#39;|| _out_tablename ||&#39;best2;
+create table routing.&#39;|| _out_tablename ||&#39;best2 as 
+with 
+--second routenum
+rn as (select distinct routenum from routing.&#39;|| _out_tablename ||&#39;best group by routenum order by routenum desc limit 1)
+select * from routing.&#39;|| _out_tablename ||&#39;best where routenum in (select routenum from rn);
+
+--drop the copy with both 2 best alterntives
+drop table if exists routing.&#39;|| _out_tablename ||&#39;best;
+&#39;;
+
+execute bestalt_sql;
+
+--######## terminate
+return;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+
+-- run example
+select * from npmrds_dijkstra_ll_via(_out_tablename := &#39;altbase_&#39;, _route_tablename := &#39;routing.baseroute&#39;);</code></pre>
+</div>
+<div id="time-stepping" class="section level3">
+<h3><span class="header-section-number">6.5.5</span> Time-stepping</h3>
+<p>The <code>npmrds_route_timestep_dow_hr_delay</code> function performs a time-stepping algorithm. Using either the desired starting or arrival time, the algorithm traverses forward or backward along the identified routes, and at each segment, estimates the duration to traverse the segment based on the average speed for the matching day-of-week and time-of-day from empirical data. Using the estimated traversal duration, the time to enter the next segment is estimated, and so on until the route is traversed. Cumulative traversal durations are calculated for the route as a whole.</p>
+<p>If the run-time parameter specifying a work zone delay file is included, the function will apply forecasted delay intervals to affected segments in the time-stepping algorithm.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/npmrds_route_timestep_dow_hr_delay.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code> --input is a route, with either the time_start or time_end as one input
+ --start at the first record, get the time stamp, either start or arrive
+    --get isodow, hour from the time stamp
+    --get estimated speed from related record in isodow/hr/tmc speed table (match on TMC, iso_dow, hr)
+    --get estimated traversal time as (length_mi / speed) from the related record
+    --add delay_hours_rgid to the estimated traversal time as estimated traversal time with delay. Usually the delay is 0.
+    --if _forward
+        --add time_start + (estimated traversal time with delay) = time_end_of_segment
+    --else
+        --time_end - estimated_travel_time_with_delay = time_start
+    --time_start_of segment = time_end_of_segment
+    --LOOP
+
+--need a return type for records that are output iteratively
+drop type if exists route_timestep_return_type cascade;
+create type route_timestep_return_type as (
+    tmc text
+    , rgid bigint
+    , roadname text
+    , length_mi float
+    , time_start_of_segment timestamptz
+    , time_end_of_segment timestamptz
+    , hours float
+    , geom geometry
+);  
+
+drop function if exists npmrds_route_timestep_dow_hr_delay(
+      _route_table text
+    , _route_geom_field text
+    , _init_time text   --start or end time
+    , _speed_table text --npmrds.speed_truck_dow_hr
+    , _use_delay bool   --use delay or not
+    , _forward bool);    --default is to start at the first rgid and move downward, adding, otherwise start at last, subtracting
+create function npmrds_route_timestep_dow_hr_delay(
+      _route_table text
+    , _route_geom_field text
+    , _init_time text   --start or end time
+    , _speed_table text --npmrds.speed_truck_dow_hr
+    , _use_delay bool default true
+    , _forward bool default true)   --default is to start at the first rgid and move downward, adding, otherwise start at last, subtracting
+
+returns setof route_timestep_return_type as
+$$
+#variable_conflict use_column
+
+DECLARE
+    _isorec record; -- the related record from the speed table    
+    _routerec record;   --the record from the route
+    _routesql text;     --sql to get the route 
+    _sort_direction text;       --asc or desc for rgid sorting
+    _time0 timestamptz;         --time stamp for proceeding with calculation (either last arrival time if timing based on arrive or first start)
+    _time1 timestamptz;         --time stamp corresponding to addition or subtraction of traverse
+    _iso_dow integer;           --isodow (1 = Monday)
+    _hr integer;                --hour of day
+    _delay_start timestamptz;   --time when a delay starts
+    _delay_end timestamptz;     --time when a delay ends
+    _tmc text;                  --segment&#39;s TMC code
+    _speedsql text;             --SQL to select related speed record
+    _traverse_dur_hours float;  --time to traverse the segment
+    _speed float;               --speed from the speeds table
+    _length_mi float;           --length from the route table
+    _delay_hours float;         --additional hours of delay from the processed route table
+    _traverse_dur_hours_delay float;    --traversal time with added delay
+    _outrec route_timestep_return_type; --what comes out of the time stepper
+    _rgid bigint;                  --unique route-ordered record identifier
+    _roadname text;
+    _geom geometry;
+    
+begin
+
+--forward or backward?
+if _forward then
+    _sort_direction := &#39;asc&#39;;
+else
+    _sort_direction := &#39;desc&#39;;
+end if;
+
+--isodow and hr from input time stamp (first iteration)
+execute &#39;select extract(isodow from &#39;&#39;&#39;|| _init_time ||&#39;&#39;&#39;::timestamptz)::int&#39; into _iso_dow;
+execute &#39;select extract(hour from &#39;&#39;&#39;|| _init_time ||&#39;&#39;&#39;::timestamptz)::int&#39; into _hr;
+
+--sql to select records from the route
+if _use_delay 
+then
+    _routesql := 
+    &#39;with
+    --route
+    r as (select rgid, tmc, roadname
+        --proportion of (length of rgid segment) / (length of the TMC segment)
+        , length_mi
+        , length_mi / sum(length_mi) over (partition by tmc) as length_prop_tmc 
+        , &#39;|| _route_geom_field ||&#39; as geom
+        from routing.&#39;|| _route_table ||&#39; order by rgid)
+    --work zone
+    , z as (select * from routing.construction_zone)
+    --delay as interval
+    , d as (select * from routing.constructiondelay)
+    --delay across zone
+    , dz as (select zone_num, tmc, delay_start, delay_end, delay_minutes as delay_minutes_tmc from d join z using(zone_num))
+    --zone delay on route records
+    , dzr as (select *, 
+        --apportions the delay over all segments in the work zone, (segment length) / (total length of work zone)
+        coalesce(delay_minutes_tmc * length_mi / sum(length_mi) over (partition by zone_num) / 60, 0) as delay_hours_rgid 
+        from r left join dz using(tmc))
+    select * from dzr order by rgid &#39;|| _sort_direction ||&#39;;&#39;;
+else
+    _routesql := 
+    &#39;with
+    --route
+    r as (select rgid, tmc, roadname
+        --proportion of (length of rgid segment) / (length of the TMC segment)
+        , length_mi
+        , length_mi / sum(length_mi) over (partition by tmc) as length_prop_tmc 
+        , &#39;|| _route_geom_field ||&#39; as geom
+        , null::int as zone_num, null::timestamptz as delay_start, null::timestamptz as delay_end, null::int as delay_minutes_tmc, null::float as delay_hours_rgid
+        from routing.&#39;|| _route_table ||&#39; order by rgid)
+    select * from r order by rgid &#39;|| _sort_direction ||&#39;;&#39;;
+end if;
+
+raise notice &#39;route sql: %&#39;, _routesql;
+
+--first time is a runtime parameter
+_time0 := _init_time::timestamptz;
+
+--loop over each record in the route
+for _routerec in execute _routesql loop
+    --raise notice &#39;%&#39;, _routerec;
+
+    --stuff from the route table
+    --delay start and end
+    _delay_start := _routerec.delay_start;
+    _delay_end := _routerec.delay_end;
+    _tmc := _routerec.tmc;
+    _rgid := _routerec.rgid;
+    _length_mi := _routerec.length_mi;
+    _roadname := _routerec.roadname;
+    _geom := _routerec.geom;
+
+    --use delay?
+    if _use_delay then
+        _delay_hours := _routerec.delay_hours_rgid;
+    else
+        _delay_hours := 0;
+    end if;
+    
+    --get the related speed
+    _speedsql := &#39;select tmc, speed, iso_dow::int, hr::int from &#39;|| _speed_table ||&#39; where tmc = &#39;&#39;&#39;|| _tmc ||&#39;&#39;&#39; and iso_dow = &#39;|| _iso_dow ||&#39; and hr = &#39;|| _hr ||&#39;&#39;;
+    execute _speedsql into _isorec;
+    _tmc := _isorec.tmc;
+    _speed := _isorec.speed;
+    --raise notice &#39;%&#39;, _tmc;
+
+    --calculate estimated traversal time
+    _traverse_dur_hours := _length_mi / _speed;
+    --and traversal time with delay
+    _traverse_dur_hours_delay := _traverse_dur_hours + _delay_hours;
+
+    --estimate time at end (or start) of segment
+    if _forward then
+        _time1 := _time0 + interval &#39;1 hour&#39; * _traverse_dur_hours_delay;
+        --SELECT _tmc, _rgid, _roadname, _iso_dow, _hr, _time0, _time1 into _outrec;
+        SELECT _tmc, _rgid, _roadname, _length_mi, _time0, _time1, _traverse_dur_hours_delay, _geom into _outrec;
+    else
+        _time1 := _time0 - interval &#39;1 hour&#39; * _traverse_dur_hours_delay;
+        --SELECT _tmc, _rgid, _roadname, _iso_dow, _hr, _time1, _time0 into _outrec;
+        SELECT _tmc, _rgid, _roadname, _length_mi, _time1, _time0, _traverse_dur_hours_delay, _geom into _outrec;
+    end if;
+
+    --new time_start as time_end
+    _time0 := _time1;    
+
+    return next _outrec;
+   
+end loop;
+
+return;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+--an example
+-- select 
+-- tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as the_geom_32614
+-- from npmrds_route_timestep_dow_hr_delay(_route_table := &#39;bestroute&#39;, _route_geom_field := &#39;the_geom_32614&#39;, _init_time := &#39;2017-04-19 12:00&#39;, _speed_table := &#39;npmrds.speed_truck_dow_hr&#39;, _forward := true) order by rgid;
+
+select
+tmc, rgid, roadname, length_mi, time_start_of_segment, time_end_of_segment, hours, geom as the_geom_32614
+from npmrds_route_timestep_dow_hr_delay(_route_table := &#39;baseroute&#39;, _route_geom_field := &#39;the_geom_32614&#39;, _init_time := &#39;2017-04-19 17:00&#39;, _speed_table := &#39;npmrds.speed_truck_dow_hr&#39;, _forward := false, _use_delay := false) order by rgid;</code></pre>
+</div>
+<div id="driving-instructions" class="section level3">
+<h3><span class="header-section-number">6.5.6</span> Driving instructions</h3>
+<p>Finally, after all routes are generated, contiguous segments with the same road name are coalesced, giving a table with driving instructions, including the road name, estimated length of traversal, and estimated time of starting and completing each leg.</p>
+<pre class="r"><code>cat(readLines(&quot;sql/driving_directions.sql&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>--driving directions from a route table
+
+drop function if exists driving_directions(_tablename text, _geomfield text);
+create function driving_directions(_tablename text, _geomfield text)
+returns void as 
+
+$$
+
+declare 
+    _sql text;
+    _out_tablename text;
+
+begin
+
+--the output tablename is the same as the input, with &quot;_driving&quot; appended
+_out_tablename := _tablename ||&#39;_driving&#39;;
+
+_sql := &#39;
+--generates contiguous roadway names with time and distance estimates
+drop table if exists &#39;|| _out_tablename ||&#39;;
+create table &#39;|| _out_tablename ||&#39; as 
+with
+e as (select row_number() over() as seq, * from &#39;|| _tablename ||&#39;)
+--group records by street name
+, mjx as (select row_number() OVER(ORDER BY seq ASC) - row_number() OVER(PARTITION BY roadname ORDER BY seq ASC) AS grp, * from e order by seq)
+--sequential number of group for proper sorting -- important because some street names may be repeated out of sequence
+, g as (select row_number() over() as grpid, * from (select distinct min(seq) over(partition by grp) as seq, grp from mjx order by seq) as foo)
+--join back with network
+, ng as (select g.grpid, mjx.* from mjx join g using(grp) order by seq)
+--summarize by grpid
+, f1 as (select roadname
+    , round(sum(hours)::numeric * 60) as minutes
+    , round(sum(length_mi::numeric),1) as miles
+    , date_trunc(&#39;&#39;minute&#39;&#39;, min(time_start_of_segment) + interval &#39;&#39;30 second&#39;&#39;) as time_start_leg
+    , date_trunc(&#39;&#39;minute&#39;&#39;, max(time_end_of_segment) + interval &#39;&#39;30 second&#39;&#39;) as time_end_leg
+    , st_collect(&#39;|| _geomfield ||&#39;) as &#39;|| _geomfield ||&#39;
+    from ng group by grpid, roadname order by grpid)
+select * from f1 order by time_start_leg;
+
+--summary table for entire route, total time and distance
+drop table if exists &#39;|| _out_tablename ||&#39;_sum;
+create table &#39;|| _out_tablename ||&#39;_sum as 
+    select sum(minutes) as total_minutes
+    , sum(miles) as total_miles from &#39;|| _out_tablename ||&#39;;
+&#39;;
+
+
+execute _sql;
+
+end;
+
+$$ language &#39;plpgsql&#39;;
+
+select * from driving_directions(&#39;routing.bestroute&#39;,&#39;the_geom_32614&#39;);
+
+select * from routing.bestroute;</code></pre>
+</div>
+<div id="shiny-code" class="section level3">
+<h3><span class="header-section-number">6.5.7</span> Shiny code</h3>
+<p>The code for the Shiny interface generates all of the widgets, and at run time performs all of the routing based on parameters specified in the interface.</p>
+<pre class="r"><code>cat(readLines(&quot;OD_Routing/app.R&quot;), sep = &quot;\n&quot;)</code></pre>
+<pre><code>#
+# This is a Shiny web application. You can run the application by clicking
+# the &#39;Run App&#39; button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+library(shiny)
+library(rmarkdown)
+
+# Define UI for application that draws a histogram
+ui &lt;- fluidPage(
+   
+    # Application title
+    titlePanel(&quot;OD Routing Runtime Parameters&quot;),
+    
+    hr(),
+    
+        fluidRow(        
+            
+            column(3, 
+                   
+                textInput(inputId = &quot;edge_tablename&quot;, label = (&quot;Name of table containing edges&quot;), value = &quot;npmrds.roads_topo&quot;),
+
+                textInput(inputId = &quot;edge_geomfield&quot;, label = (&quot;Name of geometry field in edge table&quot;), value = &quot;the_geom_32614&quot;),
+                
+                textInput(inputId = &quot;speed_tablename&quot;, label = (&quot;Name of table containing DOW and hour speeds&quot;), value = &quot;npmrds.speed_truck_dow_hr&quot;),
+                
+                textInput(inputId = &quot;srid&quot;, label = (&quot;EPSG code of spatial reference ID&quot;), value = &quot;32614&quot;),
+                
+                textInput(inputId = &quot;edge_speedfield&quot;, label = (&quot;Name of speed field in edge table&quot;), value = &quot;speed_truck&quot;),
+                
+                textInput(inputId = &quot;edge_costfield&quot;, label = (&quot;Name of cost field in edge table&quot;), value = &quot;cost_truck&quot;),
+                
+                textInput(inputId = &quot;edge_reverse_costfield&quot;, label = (&quot;Name of reverse cost field in edge table&quot;), value = &quot;reverse_cost_truck&quot;),
+                
+                textInput(inputId = &quot;vertex_tablename&quot;, label = (&quot;Name of table containing vertices&quot;), value = &quot;npmrds.roads_topo_vertices_pgr&quot;),
+                
+                textInput(inputId = &quot;vertex_geomfield&quot;, label = (&quot;Name of geometry field in vertices table&quot;), value = &quot;the_geom&quot;)
+            ),
+                
+            
+            column(4,   
+                #  delay input file
+                textInput(inputId = &quot;delays&quot;, label = (&quot;Construction delays CSV file&quot;), value = &quot;/projects/fratis/npmrds/construction_delays.csv&quot;),
+
+                # construction zone input file
+                textInput(inputId = &quot;zones&quot;, label = (&quot;Construction zones CSV file&quot;), value = &quot;/projects/fratis/npmrds/construction_zones.csv&quot;),
+                
+                # via locations
+                textInput(inputId = &quot;vias&quot;, label = (&quot;&#39;Via&#39; location vertext id CSV file&quot;), value = &quot;/projects/fratis/npmrds/via_ids.csv&quot;),          
+
+                # search tolerance radius
+                numericInput(&quot;tol&quot;, label = (&quot;Search tolerance radius (m)&quot;), value = 10000),
+
+                # number of vertices to search for in the tolerance radius
+                numericInput(&quot;n_verts&quot;, label = (&quot;Vertices to search for&quot;), value = 10)
+
+            ), 
+            
+            column(5, 
+          
+                # origin lat
+                numericInput(&quot;origin_lat&quot;, label = (&quot;Origin latitude&quot;), value = 32.828747),
+
+                # origin lon
+                numericInput(&quot;origin_lon&quot;, label = (&quot;Origin longitude&quot;), value = -97.321056),
+
+                # dest lat
+                numericInput(&quot;dest_lat&quot;, label = (&quot;Destination latitude&quot;), value = 29.477291),
+
+                # dest lon
+                numericInput(&quot;dest_lon&quot;, label = (&quot;Destination longitude&quot;), value = -98.477602),
+
+                # time to start
+                textInput(inputId = &quot;start_time&quot;, label = (&quot;Departure/arrival time (YYYY-mm-dd HH:MM)&quot;), value = &quot;2017-04-19 12:00&quot;),
+                
+                radioButtons(inputId = &quot;depart_arrive&quot;, label = &quot;Time setting&quot;, choices = c(&quot;depart&quot;, &quot;arrive&quot;), selected = &quot;depart&quot;, inline = TRUE)
+
+            )
+        
+        ),
+    
+        hr(),
+    
+        fluidRow( 
+        
+            column(3, 
+                # submit
+                actionButton(inputId = &quot;run&quot;, label = &quot;Run&quot;)
+            ),
+            
+            column(4,
+                h3(textOutput(&quot;done&quot;))
+            ),
+            
+            column(4, 
+                uiOutput(&quot;url&quot;)        
+            )
+        ),
+        
+        hr()
+)
+
+# Define server logic required to draw a histogram
+server &lt;- function(input, output) {
+    # controls how the &quot;Done message is displayed
+    v &lt;- reactiveValues(data = FALSE)
+    
+    observeEvent(input$run, {
+        
+        sql &lt;- &quot;
+            select * from npmrds_run_wrapper(
+                _constructiondelayfile := &#39;xxxCDFxxx&#39;
+                , _constructionzonefile := &#39;xxxZONxxx&#39;
+                , _viavertexfile := &#39;xxxVIAxxx&#39;
+                , _edge_tablename := &#39;xxxETNxxx&#39;
+                , _edge_geomfield := &#39;xxxEGFxxx&#39;
+                , _speed_tablename := &#39;xxxSTNxxx&#39;
+                , _srid := xxxSRIDxxx
+                , _edge_speedfield := &#39;xxxESFxxx&#39;
+                , _edge_costfield := &#39;xxxECFxxx&#39;
+                , _edge_reversecostfield := &#39;xxxERFxxx&#39;
+                , _edge_vertex_tablename := &#39;xxxVTNxxx&#39;
+                , _edge_vertex_geomfield := &#39;xxxVGNxxx&#39;
+                , _mytol := xxxTOLxxx
+                , _n_verts := xxxNVTxxx
+                , _time_init := &#39;xxxTSTxxx&#39;
+                , _origin_lat := xxxOLAxxx
+                , _origin_lon := xxxOLOxxx
+                , _dest_lat := xxxDLAxxx
+                , _dest_lon := xxxDLOxxx
+                , _forward := xxxFWDxxx);&quot;
+        
+        # forward vs. backward
+        forward &lt;- ifelse(input$depart_arrive == &quot;depart&quot;, &quot;true&quot;, &quot;false&quot;)
+        
+        # substitute values
+        sqlsub &lt;- gsub(&quot;xxxCDFxxx&quot;, input$delays, sql)
+        sqlsub &lt;- gsub(&quot;xxxZONxxx&quot;, input$zones, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxVIAxxx&quot;, input$vias, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxETNxxx&quot;, input$edge_tablename, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxEGFxxx&quot;, input$edge_geomfield, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxSTNxxx&quot;, input$speed_tablename, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxSRIDxxx&quot;, input$srid, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxESFxxx&quot;, input$edge_speedfield, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxECFxxx&quot;, input$edge_costfield, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxERFxxx&quot;, input$edge_reverse_costfield, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxVTNxxx&quot;, input$vertex_tablename, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxVGNxxx&quot;, input$vertex_geomfield, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxTOLxxx&quot;, input$tol, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxNVTxxx&quot;, input$n_verts, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxTSTxxx&quot;, input$start_time, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxOLAxxx&quot;, input$origin_lat, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxOLOxxx&quot;, input$origin_lon, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxDLAxxx&quot;, input$dest_lat, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxDLOxxx&quot;, input$dest_lon, sqlsub)
+        sqlsub &lt;- gsub(&quot;xxxFWDxxx&quot;, forward, sqlsub)
+        
+        # write the sql file to /tmp
+        cat(sqlsub, file=&quot;/tmp/npmrds.sql&quot;)
+    
+        # run the query
+        system(&quot;psql -f /tmp/npmrds.sql fratis&quot;)
+        
+        # write parameters
+        params &lt;- c(input$delays,
+            input$zones,
+            input$edge_tablename,
+            input$edge_geomfield,
+            input$srid,
+            input$edge_speedfield,
+            input$edge_costfield,
+            input$edge_reverse_costfield,
+            input$vertex_tablename,
+            input$vertex_geomfield,
+            input$tol,
+            input$n_verts,
+            input$start_time,
+            input$origin_lat,
+            input$origin_lon,
+            input$dest_lat,
+            input$dest_lon,
+            forward)
+        
+        settings &lt;- c(
+            &quot;delay CSV&quot;,
+            &quot;zones CSV&quot;,
+            &quot;edge tablename&quot;,
+            &quot;edge geometry field&quot;,
+            &quot;EPSG spatial reference ID&quot;,
+            &quot;speed field&quot;,
+            &quot;cost field&quot;,
+            &quot;reverse cost field&quot;,
+            &quot;vertex tablename&quot;,
+            &quot;vertex geometry field&quot;,
+            &quot;search tolerance for vertices around O/D&quot;,
+            &quot;number of vertices to search around O/D&quot;,
+            &quot;depart or arrive time&quot;,
+            &quot;origin latitude&quot;,
+            &quot;origin longitude&quot;,
+            &quot;destination latitude&quot;,
+            &quot;destination longitude&quot;,
+            &quot;forward&quot;
+        )
+        
+        parameters &lt;- data.frame(setting = settings, values = params)
+
+        write.csv(parameters, &quot;/tmp/params.csv&quot;, row.names = FALSE)
+        
+        # make the results
+        render(&quot;/projects/fratis/www/routes.Rmd&quot;)
+        
+        v$data &lt;- TRUE
+        
+    }, once = FALSE)
+    
+    
+    output$done &lt;- renderText({
+        if(v$data){
+            &quot;Done!&quot;
+        }
+    })
+    
+    output$url &lt;- renderUI({
+        if(v$data){
+            a(href=&#39;/fratis/www/routes.html&#39;,&quot;Results&quot;,target=&quot;_blank&quot;)
+        } else {
+            &quot;&quot;
+        }
+    })
+  
+
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)</code></pre>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
